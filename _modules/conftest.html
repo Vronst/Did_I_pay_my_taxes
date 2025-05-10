@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>conftest &#8212; PayTrack 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for conftest</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">MagicMock</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">app.database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Tax</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">app.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">Authorization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">app.services</span><span class="w"> </span><span class="kn">import</span> <span class="n">Services</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">app.database</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyEngine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">app.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextApp</span>
+
+
+<div class="viewcode-block" id="app">
+<a class="viewcode-back" href="../conftest.html#conftest.app">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">app</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TextApp</span><span class="p">:</span>
+    <span class="n">app</span><span class="p">:</span> <span class="n">TextApp</span> <span class="o">=</span> <span class="n">TextApp</span><span class="p">()</span>
+    <span class="c1"># my_session.create_user(username=&#39;test&#39;, password=&#39;test&#39;)</span>
+    <span class="k">return</span> <span class="n">app</span></div>
+
+
+<div class="viewcode-block" id="admin_user">
+<a class="viewcode-back" href="../conftest.html#conftest.admin_user">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;session&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">admin_user</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="n">admin</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="normal_user">
+<a class="viewcode-back" href="../conftest.html#conftest.normal_user">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normal_user</span><span class="p">(</span><span class="n">my_session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
+    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;selfstandinguser&#39;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s1">&#39;mockpass&#39;</span><span class="p">,</span>
+            <span class="n">with_taxes</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="s1">&#39;water&#39;</span> <span class="ow">in</span> <span class="p">[</span><span class="n">tax</span><span class="o">.</span><span class="n">taxname</span> <span class="k">for</span> <span class="n">tax</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">taxes</span> <span class="k">if</span> <span class="n">tax</span><span class="o">.</span><span class="n">taxname</span> <span class="o">==</span> <span class="s1">&#39;water&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">user</span></div>
+
+
+
+<div class="viewcode-block" id="simple_user">
+<a class="viewcode-back" href="../conftest.html#conftest.simple_user">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_user</span><span class="p">(</span><span class="n">my_session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
+    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;selfstandinguser&#39;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s1">&#39;mockpass&#39;</span><span class="p">,</span>
+            <span class="n">with_taxes</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="s1">&#39;water&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">tax</span><span class="o">.</span><span class="n">taxname</span> <span class="k">for</span> <span class="n">tax</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">taxes</span> <span class="k">if</span> <span class="n">tax</span><span class="o">.</span><span class="n">taxname</span> <span class="o">==</span> <span class="s1">&#39;water&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">user</span></div>
+
+
+
+<div class="viewcode-block" id="mock_engine">
+<a class="viewcode-back" href="../conftest.html#conftest.mock_engine">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mock_engine</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">MagicMock</span><span class="p">:</span>
+    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;examplemock&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;pass&#39;</span><span class="p">)</span>
+    <span class="n">user</span><span class="o">.</span><span class="n">taxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tax</span><span class="p">(</span><span class="n">taxname</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">)]</span>
+    <span class="n">universal_object</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">universal_object</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">110</span>
+    <span class="n">universal_object</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">universal_object</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;examplemock&#39;</span>
+    <span class="n">universal_object</span><span class="o">.</span><span class="n">date</span> <span class="o">=</span> <span class="s1">&#39;2023-10-11&#39;</span>
+    <span class="n">universal_object</span><span class="o">.</span><span class="n">taxname</span> <span class="o">=</span> <span class="s1">&#39;water&#39;</span>
+    <span class="n">universal_object</span><span class="o">.</span><span class="n">taxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tax</span><span class="p">(</span><span class="n">taxname</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">)]</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">called_create_user</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">mock_get_user</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">called_create_user</span>
+        <span class="k">if</span> <span class="n">called_create_user</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">user</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">called_create_user</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_user_called</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">called_create_user</span>
+        <span class="n">called_create_user</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">user</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">get_user</span><span class="o">.</span><span class="n">side_effect</span> <span class="o">=</span> <span class="n">mock_get_user</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">create_user</span><span class="o">.</span><span class="n">side_effect</span> <span class="o">=</span> <span class="n">create_user_called</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">delete_user</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">filter_by</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">universal_object</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">filter_by</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">engine</span></div>
+
+
+
+<div class="viewcode-block" id="mock_engine_no_query">
+<a class="viewcode-back" href="../conftest.html#conftest.mock_engine_no_query">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mock_engine_no_query</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">MagicMock</span><span class="p">:</span>
+    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;examplemock&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;pass&#39;</span><span class="p">)</span>
+    <span class="n">user</span><span class="o">.</span><span class="n">taxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tax</span><span class="p">(</span><span class="n">taxname</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">)]</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">called_create_user</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">mock_get_user</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">called_create_user</span>
+        <span class="k">if</span> <span class="n">called_create_user</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">user</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">called_create_user</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_user_called</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">called_create_user</span>
+        <span class="n">called_create_user</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">user</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">get_user</span><span class="o">.</span><span class="n">side_effect</span> <span class="o">=</span> <span class="n">mock_get_user</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">create_user</span><span class="o">.</span><span class="n">side_effect</span> <span class="o">=</span> <span class="n">create_user_called</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">delete_user</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">filter_by</span><span class="o">.</span><span class="n">return_value</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">engine</span></div>
+
+
+<div class="viewcode-block" id="mock_engine_with_user">
+<a class="viewcode-back" href="../conftest.html#conftest.mock_engine_with_user">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mock_engine_with_user</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">MagicMock</span><span class="p">:</span>
+    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">=</span> <span class="n">User</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;examplemock&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;pass&#39;</span><span class="p">)</span>
+    <span class="n">user</span><span class="o">.</span><span class="n">taxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tax</span><span class="p">(</span><span class="n">taxname</span><span class="o">=</span><span class="s1">&#39;testtax&#39;</span><span class="p">)]</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">get_user</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">user</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">create_user</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">user</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">delete_user</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">engine</span></div>
+
+
+
+<div class="viewcode-block" id="auth_mock_no_user">
+<a class="viewcode-back" href="../conftest.html#conftest.auth_mock_no_user">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">auth_mock_no_user</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">MagicMock</span><span class="p">:</span>
+    <span class="n">auth</span><span class="p">:</span> <span class="n">MagicMock</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">auth</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">auth</span></div>
+
+
+<div class="viewcode-block" id="auth_mock">
+<a class="viewcode-back" href="../conftest.html#conftest.auth_mock">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">auth_mock</span><span class="p">(</span><span class="n">my_session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">MagicMock</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="n">auth</span><span class="p">:</span> <span class="n">MagicMock</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">user</span><span class="p">:</span> <span class="n">User</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;mockuservalue&#39;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s1">&#39;mockpass&#39;</span><span class="p">,</span>
+            <span class="n">with_taxes</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="s1">&#39;water&#39;</span> <span class="ow">in</span> <span class="p">[</span><span class="n">tax</span><span class="o">.</span><span class="n">taxname</span> <span class="k">for</span> <span class="n">tax</span> <span class="ow">in</span> <span class="n">user</span><span class="o">.</span><span class="n">taxes</span> <span class="k">if</span> <span class="n">tax</span><span class="o">.</span><span class="n">taxname</span> <span class="o">==</span> <span class="s1">&#39;water&#39;</span><span class="p">]</span>
+    <span class="n">auth</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
+    <span class="k">yield</span> <span class="n">auth</span>
+
+    <span class="n">my_session</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;mockuservalue&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="auth_mock_user_no_taxes">
+<a class="viewcode-back" href="../conftest.html#conftest.auth_mock_user_no_taxes">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">auth_mock_user_no_taxes</span><span class="p">(</span><span class="n">my_session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">MagicMock</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="n">auth</span><span class="p">:</span> <span class="n">MagicMock</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+    <span class="n">auth</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="s1">&#39;mockuservalue&#39;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s1">&#39;mockpass&#39;</span><span class="p">,</span>
+            <span class="n">with_taxes</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="k">yield</span> <span class="n">auth</span>
+
+    <span class="n">my_session</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="s1">&#39;mockuservalue&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="my_session">
+<a class="viewcode-back" href="../conftest.html#conftest.my_session">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;function&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_session</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">MyEngine</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+
+    <span class="n">meng</span><span class="p">:</span> <span class="n">MyEngine</span> <span class="o">=</span> <span class="n">MyEngine</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test_db</span><span class="o">=</span><span class="s1">&#39;testtaxes&#39;</span><span class="p">)</span>
+    <span class="n">meng</span><span class="o">.</span><span class="n">create_my_session</span><span class="p">()</span>
+
+    <span class="k">yield</span> <span class="n">meng</span>
+
+    <span class="n">meng</span><span class="o">.</span><span class="n">close_session</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="no_session">
+<a class="viewcode-back" href="../conftest.html#conftest.no_session">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">no_session</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">MyEngine</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="n">meng</span><span class="p">:</span> <span class="n">MyEngine</span> <span class="o">=</span> <span class="n">MyEngine</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test_db</span><span class="o">=</span><span class="s1">&#39;testtaxes&#39;</span><span class="p">)</span>
+
+    <span class="k">yield</span> <span class="n">meng</span></div>
+
+
+
+<div class="viewcode-block" id="ex_user">
+<a class="viewcode-back" href="../conftest.html#conftest.ex_user">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ex_user</span><span class="p">(</span><span class="n">my_session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="n">returned_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;thisuserisreal&#39;</span><span class="p">,</span> <span class="s1">&#39;thisishispass&#39;</span><span class="p">]</span>
+    <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">returned_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">returned_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">yield</span> <span class="n">returned_list</span>
+
+    <span class="n">my_session</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">returned_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="dict_of">
+<a class="viewcode-back" href="../conftest.html#conftest.dict_of">[docs]</a>
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s1">&#39;function&#39;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dict_of</span><span class="p">(</span><span class="n">my_session</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;toic&#39;</span>
+    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;StrongPass!&#39;</span>
+    <span class="n">admin_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;admin&#39;</span>
+    <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">admin_name</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">admin_name</span><span class="p">,</span> <span class="n">admin</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">my_session</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="o">+</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="o">+</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="n">with_taxes</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">auth</span><span class="p">:</span> <span class="n">Authorization</span> <span class="o">=</span> <span class="n">Authorization</span><span class="p">(</span><span class="n">engine</span><span class="o">=</span><span class="n">my_session</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;register&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">auth</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">services</span><span class="p">:</span> <span class="n">Services</span> <span class="o">=</span> <span class="n">Services</span><span class="p">(</span>
+        <span class="n">user</span><span class="o">=</span><span class="n">auth</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+        <span class="n">engine</span><span class="o">=</span><span class="n">my_session</span><span class="p">)</span>
+
+    <span class="k">yield</span> <span class="p">{</span>
+        <span class="s1">&#39;engine&#39;</span><span class="p">:</span> <span class="n">my_session</span><span class="p">,</span>
+        <span class="s1">&#39;auth&#39;</span><span class="p">:</span> <span class="n">auth</span><span class="p">,</span>
+        <span class="s1">&#39;services&#39;</span><span class="p">:</span> <span class="n">services</span><span class="p">,</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="n">password</span><span class="p">},</span>
+        <span class="s1">&#39;user_no_taxes&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">username</span><span class="o">+</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="n">password</span><span class="o">+</span><span class="s1">&#39;1&#39;</span><span class="p">},</span>
+        <span class="s1">&#39;admin&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;username&#39;</span><span class="p">:</span> <span class="n">admin_name</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="n">admin_name</span><span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="n">inputs</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">del</span> <span class="n">services</span>
+    <span class="n">auth</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+    <span class="n">auth</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">admin_name</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">admin_name</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">auth</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">input_method</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="nb">next</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span>
+        <span class="n">auth</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span><span class="n">username</span><span class="o">+</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="n">input_method</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="nb">next</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span>
+        <span class="n">auth</span><span class="o">.</span><span class="n">delete_user</span><span class="p">(</span><span class="n">admin_name</span><span class="p">,</span> <span class="n">input_method</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="nb">next</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">del</span> <span class="n">auth</span></div>
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">PayTrack</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Rachunki</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Vronst.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
